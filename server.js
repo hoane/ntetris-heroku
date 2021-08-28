@@ -1,4 +1,5 @@
 var express = require('express');
+const { domainToASCII } = require('url');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
@@ -42,6 +43,11 @@ io.on('connection', function (socket) {
     });
 });
 
-server.listen(8081, function () {
+
+var port = process.env.PORT;
+if (port == null || port == "") {
+    port = 8082
+}
+server.listen(port, function () {
     console.log(`Listening on ${server.address().port}`);
 });
