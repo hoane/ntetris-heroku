@@ -59,7 +59,6 @@ class GameRoomScene extends Phaser.Scene {
         });
 
         self.socket.on('room-state-update', function ({ roomState: roomState }) {
-            console.log('hi');
             self.roomState = roomState;
             self.boardUpdated = true;
         });
@@ -158,9 +157,10 @@ function getRealizedBoard(state, player) {
 
     let piece = state.players[player === P1 ? 0 : 1].piece;
     if (piece) {
+        let shape = piece.rotations[piece.r];
         for (let y = 0; y < piece.h; y++) {
             for (let x = 0; x < piece.w; x++) {
-                if (piece.shape[y][x] === 1) {
+                if (shape[y][x] === 1) {
                     array[piece.y + y][piece.x + x] = P1P;
                 }
             }
@@ -169,9 +169,10 @@ function getRealizedBoard(state, player) {
 
     piece = state.players[player === P1 ? 1 : 0].piece;
     if (piece) {
+        let shape = piece.rotations[piece.r];
         for (let y = 0; y < piece.h; y++) {
             for (let x = 0; x < piece.w; x++) {
-                if (piece.shape[y][x] === 1) {
+                if (shape[y][x] === 1) {
                     array[gameHeight - (piece.y + y) - 1][gameWidth - (piece.x + x) - 1] = P2P;
                 }
             }

@@ -7,15 +7,120 @@ let P2 = 1;
 let BG = 2;
 let TERR = 3;
 
-let iPiece = [[1], [1], [1], [1]];
-let tPiece = [[0, 1, 0], [1, 1, 1]];
-let sPiece = [[0, 1, 1], [1, 1, 0]];
-let zPiece = [[1, 1, 0], [0, 1, 1]];
-let oPiece = [[1, 1], [1, 1]];
-let lPiece = [[1, 0], [1, 0], [1, 0], [1, 1]];
-let jPiece = [[0, 1], [0, 1], [0, 1], [1, 1]];
+let S = 0;
+let R = 1;
+let F = 2;
+let L = 1;
 
-let pieces = [iPiece, tPiece, sPiece, zPiece, oPiece, lPiece, jPiece];
+function k(x, y) { return { x: x, y: y } }
+
+let wallkicks = {
+    S: {
+        R: [k(0, 0), k(-1, 0), k(-1, 1), k(0, -2), k(-1, -2)],
+        L: [k(0, 0), k(1, 0), k(1, 1), k(0, -2), k(1, -2)]
+    },
+    R: {
+        F: [k(0, 0), k(1, 0), k(1, -1), k(0, 2), k(1, 2)],
+        S: [k(0, 0), k(1, 0), k(1, -1), k(0, 2), k(1, 2)]
+    },
+    F: {
+        L: [k(0, 0), k(1, 0), k(1, 1), k(0, -2), k(1, -2)],
+        R: [k(0, 0), k(-1, 0), k(-1, 1), k(0, -2), k(-1, -2)]
+    },
+    L: {
+        S: [k(0, 0), k(-1, 0), k(-1, -1), k(0, 2), k(-1, 2)],
+        F: [k(0, 0), k(-1, 0), k(-1, -1), k(0, 2), k(-1, 2)]
+    }
+};
+
+let iWallkicks = {
+    S: {
+        R: [k(0, 0), k(-2, 0), k(1, 0), k(-2, -1), k(1, 2)],
+        L: [k(0, 0), k(-1, 0), k(2, 0), k(-1, 2), k(2, -1)]
+    },
+    R: {
+        F: [k(0, 0), k(-1, 0), k(2, 0), k(-1, 2), k(2, -1)],
+        S: [k(0, 0), k(2, 0), k(-1, 0), k(2, 1), k(-1, -2)]
+    },
+    F: {
+        L: [k(0, 0), k(2, 0), k(-1, 0), k(2, 1), k(-1, -2)],
+        R: [k(0, 0), k(1, 0), k(-2, 0), k(1, -2), k(-2, 1)]
+    },
+    L: {
+        S: [k(0, 0), k(1, 0), k(-2, 0), k(1, -2), k(-2, 1)],
+        F: [k(0, 0), k(-2, 0), k(1, 0), k(-2, -1), k(1, 2)]
+    }
+};
+
+let pieces = [
+    // I
+    {
+        rotations: [
+            [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
+            [[0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 1, 0]],
+            [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0]],
+            [[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]]
+        ],
+        kicks: iWallkicks
+    },
+    // J
+    {
+        rotations: [
+            [[1, 0, 0], [1, 1, 1], [0, 0, 0]],
+            [[0, 1, 1], [0, 1, 0], [0, 1, 0]],
+            [[0, 0, 0], [1, 1, 1], [0, 0, 1]],
+            [[0, 1, 0], [0, 1, 0], [1, 1, 0]]
+        ],
+        kicks: wallkicks
+    },
+    // L
+    {
+        rotations: [
+            [[0, 0, 1], [1, 1, 1], [0, 0, 0]],
+            [[0, 1, 0], [0, 1, 0], [0, 1, 1]],
+            [[0, 0, 0], [1, 1, 1], [1, 0, 0]],
+            [[1, 1, 0], [0, 1, 0], [0, 1, 0]]
+        ],
+        kicks: wallkicks
+    },
+    // O
+    {
+        rotations: [
+            [[1, 1], [1, 1]]
+        ],
+        kicks: null
+    },
+    // S
+    {
+        rotations: [
+            [[0, 1, 1], [1, 1, 0], [0, 0, 0]],
+            [[0, 1, 0], [0, 1, 1], [0, 0, 1]],
+            [[0, 0, 0], [0, 1, 1], [1, 1, 0]],
+            [[1, 0, 0], [1, 1, 0], [0, 1, 0]]
+        ],
+        kicks: wallkicks
+    },
+    // T
+    {
+        rotations: [
+            [[0, 1, 0], [1, 1, 1], [0, 0, 0]],
+            [[0, 1, 0], [0, 1, 1], [0, 1, 0]],
+            [[0, 0, 0], [1, 1, 1], [0, 1, 0]],
+            [[0, 1, 0], [1, 1, 0], [0, 1, 0]]
+        ],
+        kicks: wallkicks
+    },
+    // Z
+    {
+        rotations: [
+            [[1, 1, 0], [0, 1, 1], [0, 0, 0]],
+            [[0, 0, 1], [0, 1, 1], [0, 1, 0]],
+            [[0, 0, 0], [1, 1, 0], [0, 1, 1]],
+            [[0, 1, 0], [1, 1, 0], [1, 0, 0]]
+        ],
+        kicks: wallkicks
+    }
+];
 
 function newNtetrisGameState() {
     return {
@@ -82,10 +187,11 @@ function performKeyPress(state, player, key) {
 }
 
 function lockPiece(state, player) {
-    let piece = state.players[player].piece
+    let piece = state.players[player].piece;
+    let shape = piece.rotations[piece.r];
     for (let y = 0; y < piece.h; y++) {
         for (let x = 0; x < piece.w; x++) {
-            if (piece.shape[y][x] === 1) {
+            if (shape[y][x] === 1) {
                 setAs(state.board, piece.y + y, piece.x + x, player, TERR);
             }
         }
@@ -93,21 +199,42 @@ function lockPiece(state, player) {
 
     rowsToClear = [];
     for (let y = 0; y < piece.h; y++) {
-        let completed = true;
-        for (let x = 0; x < width; x++) {
-            if (getAs(state.board, piece.y + y, x, player) === BG) {
-                completed = false;
+        let hasBlock = false;
+        for (let x = 0; x < piece.w; x++) {
+            if (shape[y][x] === 1) {
+                hasBlock = true;
             }
         }
-        if (completed) rowsToClear.push(piece.y + y);
+        if (hasBlock) {
+            let completed = true;
+            for (let x = 0; x < width; x++) {
+                if (getAs(state.board, piece.y + y, x, player) === BG) {
+                    completed = false;
+                }
+            }
+            if (completed) rowsToClear.push(piece.y + y);
+        }
     }
+
+    rowsToClear.forEach(r, i => {
+        let row = r + i;
+        for (let y = row; y > 0; y--) {
+            for (let x = 0; x < width; x++) {
+                let upVal = getAs(state.board, y - 1, x, player);
+                setAs(state.board, y, x, player, upVal);
+            }
+        }
+    });
+
     state.players[player].piece = null;
+    spawnPiece(state, player);
 }
 
 function pieceIntersects(state, piece) {
+    let shape = piece.rotations[piece.r];
     for (let y = 0; y < piece.h; y++) {
         for (let x = 0; x < piece.w; x++) {
-            if (getAs(state.board, piece.y + y, piece.x + x, piece.player) === TERR) {
+            if (shape[y][x] === 1 && getAs(state.board, piece.y + y, piece.x + x, piece.player) === TERR) {
                 return true;
             }
         }
@@ -120,15 +247,21 @@ function spawnPiece(state, player) {
     state.players[player].piece = piece;
 }
 
+function spinPiece(piece, cw) {
+
+}
+
 function createPiece(player) {
     let shape = pieces[Math.floor(Math.random() * pieces.length)];
+    let w = shape.rotations[0][0].length;
     return {
         y: 0,
-        x: 4,
-        h: shape.length,
-        w: shape[0].length,
+        x: 5 - Math.floor(w / 2),
+        h: shape.rotations[0].length,
+        w: w,
         player: player,
-        shape: shape,
+        r: 0,
+        rotations: shape.rotations
     }
 }
 
