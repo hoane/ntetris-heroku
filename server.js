@@ -13,7 +13,6 @@ app.get('/', function (req, res) {
 });
 
 function serverTick() {
-    let c = 0;
     for (roomCode in rooms) {
         if (rooms[roomCode].phase === 'playing') {
             if (rooms[roomCode].gameState) {
@@ -23,11 +22,9 @@ function serverTick() {
                 rooms[roomCode].players.forEach(id => {
                     io.to(id).emit('room-state-update', { roomState: rooms[roomCode] });
                 });
-                c++;
             }
         }
     }
-    console.log('ticked %d rooms', c);
 }
 
 io.on('connection', function (socket) {
@@ -126,5 +123,5 @@ server.listen(process.env.PORT || 8082, function () {
 setInterval(serverTick, 100);
 
 function randomRoomCode() {
-    return (Math.floor(Math.random() * 90.0) + 10).toString();
+    return (Math.floor(Math.random() * 9000.0) + 1000).toString();
 }

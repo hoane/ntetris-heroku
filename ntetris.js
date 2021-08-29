@@ -149,7 +149,9 @@ let pieces = [
 function newNtetrisGameState() {
     let state = {
         board: newNtetrisBoard(),
-        gravity: 10,
+        gravity: 16,
+        gravityIncreaseTime: 100,
+        gravityIncreaseTicks: 0,
         players: [
             {
                 gravityTicks: 0,
@@ -192,9 +194,17 @@ function newNtetrisBoard() {
 }
 
 function stepState(state) {
+    if (state.gravity > 2) {
+        state.gravityIncreaseTicks--;
+        if (state.gravityIncreaseTicks <= 0) {
+            state.gravity--;
+            state.gravityIncreaseTicks = state.gravityIncreaseTime;
+        }
+    }
+
     let endGame = false;
     for (i = 0; i <= 1; i++) {
-        state.players[i].gravityTicks -= state.players[i].drop ? 10 : 1;
+        state.players[i].gravityTicks -= state.players[i].drop ? state.gravity : 1;
         if (state.players[i].gravityTicks <= 0) {
             state.players[i].gravityTicks = state.gravity;
             if (!tryMovePlacePiece(state, state.players[i].piece, 0, 1)) {
@@ -213,7 +223,6 @@ function tryPlacePiece(state, piece, wallkicks) {
         tryPiece.y += y;
 
         if (!pieceIntersects(state, tryPiece)) {
-            console.log('able to place piece ' + JSON.stringify(tryPiece));
             state.players[piece.player].piece = tryPiece;
             return true;
         }
@@ -234,7 +243,6 @@ function tryRotatePlacePiece(state, piece, cw) {
     let targetRotation = (currentRotation + (cw ? 1 : -1) + 4) % 4;
     tryPiece.r = targetRotation;
     let wallkicks = tryPiece.wallkicks[currentRotation][targetRotation];
-    console.log('available kicks: ' + JSON.stringify(wallkicks));
     return tryPlacePiece(state, tryPiece, wallkicks);
 }
 
