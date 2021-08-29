@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+var ntetris = require('./ntetris');
 
 var players = {}
 var rooms = {}
@@ -41,6 +42,8 @@ io.on('connection', function (socket) {
                 if (rooms[roomCode].players.length === 1) {
                     rooms[roomCode].players.push(socket.id);
                     rooms[roomCode].phase = 'playing';
+                    rooms[roomCode].gameState = ntetris.newNtetrisGameState();
+                    ntetris.stepState(rooms[roomCode].gameState);
                     players[socket.id].roomCode = roomCode;
                     success = true;
                 } else {
@@ -61,36 +64,26 @@ io.on('connection', function (socket) {
             socket.emit('room-join-fail', { message: message });
         }
     })
-    /*
-    players[socket.id] = {
-        rotation: 0,
-        x: Math.floor(Math.random() * 700) + 50,
-        y: Math.floor(Math.random() * 500) + 50,
-        playerId: socket.id,
-        team: (Math.floor(Math.random() * 2) == 0) ? 'red' : 'blue'
-    };
-    // send the players object to the new player
-    socket.emit('currentPlayers', players);
-    // update all other players of the new player
-    socket.broadcast.emit('newPlayer', players[socket.id]);
 
-    // when a player moves, update the player data
-    socket.on('playerMovement', function (movementData) {
-        players[socket.id].x = movementData.x;
-            players[sockephat.id].y = movementData.y;
-        players[socket.id].rotation = movementData.rotation;
-        // emit a message to all players about the player that moved
-        socket.broadcast.emit('playerMoved', players[socket.id]);
+    socket.on('key-press', function ({ key: key }) {
+        let roomCode = players[socket.id].roomCode;
+        let updated = false;
+
+        if (roomCode in rooms) {
+            if (rooms[roomCode].phase === 'playing') {
+                updated = true;
+                let player = rooms[roomCode].players[0] === socket.id ? ntetris.P1 : ntetris.P2;
+                ntetris.performKeyPress(rooms[roomCode].gameState, player, key);
+            }
+        }
+
+        if (updated) {
+            rooms[roomCode].players.forEach(id => {
+                io.to(id).emit('room-state-update', { roomState: rooms[roomCode] });
+            });
+        }
     });
 
-    socket.on('disconnect', function () {
-        console.log('user disconnected');
-        // remove this player from our players object
-        delete players[socket.id];
-        // emit a message to all players to remove this player
-        io.emit('disconnectPlayer', socket.id);
-    });
-    */
     socket.on('disconnect', function () {
         console.log('user disconnected');
         if (socket.id in players) {
