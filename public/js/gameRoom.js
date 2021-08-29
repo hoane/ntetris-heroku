@@ -38,7 +38,7 @@ class GameRoomScene extends Phaser.Scene {
         let self = this;
         let { width, height } = this.scale;
         this.roomCodeText = this.add.text(5, 5, 'ROOM:', this.font);
-        this.roomStateText = this.add.text(260, 5, '', this.font);
+        this.roomStateText = this.add.text(160, 5, '', this.font);
 
         self.socket = io();
 
@@ -75,27 +75,40 @@ class GameRoomScene extends Phaser.Scene {
             }
         }
         this.gameImageGroup.add(
-            this.add.line(0, 0, 120, baseBoardY + 3.5 * tileSize, width - 120, baseBoardY + 3.5 * tileSize, '0xff0000')
+            this.add.line(0, 0, 40, baseBoardY + 3.5 * tileSize, width - 40, baseBoardY + 3.5 * tileSize, '0xff0000')
                 .setOrigin(0, 0)
         )
         this.gameImageGroup.add(
-            this.add.line(0, 0, 120, baseBoardY + (gameHeight - 4.5) * tileSize, width - 120, baseBoardY + (gameHeight - 4.5) * tileSize, '0xff0000')
+            this.add.line(0, 0, 40, baseBoardY + (gameHeight - 4.5) * tileSize, width - 40, baseBoardY + (gameHeight - 4.5) * tileSize, '0xff0000')
                 .setOrigin(0, 0)
         )
         //this.gameImageGroup.setVisible(false);
 
         function registerKey(key, memo) {
             let keyReg = self.input.keyboard.addKey(key);
-            keyReg.on('down', function (event) {
+            keyReg.on('down', function (_event) {
                 self.socket.emit('key-press', { key: memo });
             });
         }
 
-        registerKey(Phaser.Input.Keyboard.KeyCodes.SPACE, 'space');
-        registerKey(Phaser.Input.Keyboard.KeyCodes.UP, 'up');
-        registerKey(Phaser.Input.Keyboard.KeyCodes.DOWN, 'down');
+        registerKey(Phaser.Input.Keyboard.KeyCodes.UP, 'rotate-cw');
+        registerKey(Phaser.Input.Keyboard.KeyCodes.DOWN, 'rotate-ccw');
         registerKey(Phaser.Input.Keyboard.KeyCodes.LEFT, 'left');
         registerKey(Phaser.Input.Keyboard.KeyCodes.RIGHT, 'right');
+        let dropReg = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        dropReg.on('down', function (_event) {
+            self.socket.emit('key-press', { key: 'drop-held' });
+        });
+        dropReg.on('up', function (_event) {
+            self.socket.emit('key-press', { key: 'drop-released' });
+        });
+
+        let restartReg = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+        restartReg.on('down', function (_event) {
+            if (self.roomState.phase === 'end') {
+                self.scene.start('main-menu-scene');
+            }
+        });
     }
 
     update(_time, _delta) {
@@ -109,9 +122,11 @@ class GameRoomScene extends Phaser.Scene {
                 roomStateTextVal = 'Joining room...';
             }
         } else if (this.roomState.phase === 'waiting') {
-            roomStateTextVal = 'Waiting for opponent...';
+            roomStateTextVal = 'Waiting for opponent';
         } else if (this.roomState.phase === 'playing') {
             roomStateTextVal = 'Play';
+        } else if (this.roomState.phase === 'end') {
+            roomStateTextVal = 'Game Over [R]';
         }
         this.roomStateText.setText(roomStateTextVal);
 
@@ -157,6 +172,7 @@ function getRealizedBoard(state, player) {
 
     let piece = state.players[player === P1 ? 0 : 1].piece;
     if (piece) {
+        console.log(piece);
         let shape = piece.rotations[piece.r];
         for (let y = 0; y < piece.h; y++) {
             for (let x = 0; x < piece.w; x++) {

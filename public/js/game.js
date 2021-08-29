@@ -106,7 +106,7 @@ class MainScene extends Phaser.Scene {
 var config = {
     type: Phaser.AUTO,
     parent: 'game-canvas',
-    width: 600,
+    width: 450,
     height: 1000,
     backgroundColor: '#7788aa',
     scene: [

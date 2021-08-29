@@ -10,45 +10,66 @@ let TERR = 3;
 let S = 0;
 let R = 1;
 let F = 2;
-let L = 1;
+let L = 3;
 
 function k(x, y) { return { x: x, y: y } }
 
+let noWallKicksFlat = [k(0, 0)];
+
+let noWallKicks = {
+    0: {
+        1: [k(0, 0)],
+        3: [k(0, 0)]
+    },
+    1: {
+        2: [k(0, 0)],
+        0: [k(0, 0)]
+    },
+    2: {
+        3: [k(0, 0)],
+        1: [k(0, 0)]
+    },
+    3: {
+        0: [k(0, 0)],
+        2: [k(0, 0)]
+    }
+}
+
 let wallkicks = {
-    S: {
-        R: [k(0, 0), k(-1, 0), k(-1, 1), k(0, -2), k(-1, -2)],
-        L: [k(0, 0), k(1, 0), k(1, 1), k(0, -2), k(1, -2)]
+    0: {
+        1: [k(0, 0), k(-1, 0), k(-1, 1), k(0, -2), k(-1, -2)],
+        3: [k(0, 0), k(1, 0), k(1, 1), k(0, -2), k(1, -2)]
     },
-    R: {
-        F: [k(0, 0), k(1, 0), k(1, -1), k(0, 2), k(1, 2)],
-        S: [k(0, 0), k(1, 0), k(1, -1), k(0, 2), k(1, 2)]
+    1: {
+        2: [k(0, 0), k(1, 0), k(1, -1), k(0, 2), k(1, 2)],
+        0: [k(0, 0), k(1, 0), k(1, -1), k(0, 2), k(1, 2)]
     },
-    F: {
-        L: [k(0, 0), k(1, 0), k(1, 1), k(0, -2), k(1, -2)],
-        R: [k(0, 0), k(-1, 0), k(-1, 1), k(0, -2), k(-1, -2)]
+    2: {
+        3: [k(0, 0), k(1, 0), k(1, 1), k(0, -2), k(1, -2)],
+        1: [k(0, 0), k(-1, 0), k(-1, 1), k(0, -2), k(-1, -2)]
     },
-    L: {
-        S: [k(0, 0), k(-1, 0), k(-1, -1), k(0, 2), k(-1, 2)],
-        F: [k(0, 0), k(-1, 0), k(-1, -1), k(0, 2), k(-1, 2)]
+    3: {
+        0: [k(0, 0), k(-1, 0), k(-1, -1), k(0, 2), k(-1, 2)],
+        2: [k(0, 0), k(-1, 0), k(-1, -1), k(0, 2), k(-1, 2)]
     }
 };
 
 let iWallkicks = {
-    S: {
-        R: [k(0, 0), k(-2, 0), k(1, 0), k(-2, -1), k(1, 2)],
-        L: [k(0, 0), k(-1, 0), k(2, 0), k(-1, 2), k(2, -1)]
+    0: {
+        1: [k(0, 0), k(-2, 0), k(1, 0), k(-2, -1), k(1, 2)],
+        3: [k(0, 0), k(-1, 0), k(2, 0), k(-1, 2), k(2, -1)]
     },
-    R: {
-        F: [k(0, 0), k(-1, 0), k(2, 0), k(-1, 2), k(2, -1)],
-        S: [k(0, 0), k(2, 0), k(-1, 0), k(2, 1), k(-1, -2)]
+    1: {
+        2: [k(0, 0), k(-1, 0), k(2, 0), k(-1, 2), k(2, -1)],
+        0: [k(0, 0), k(2, 0), k(-1, 0), k(2, 1), k(-1, -2)]
     },
-    F: {
-        L: [k(0, 0), k(2, 0), k(-1, 0), k(2, 1), k(-1, -2)],
-        R: [k(0, 0), k(1, 0), k(-2, 0), k(1, -2), k(-2, 1)]
+    2: {
+        3: [k(0, 0), k(2, 0), k(-1, 0), k(2, 1), k(-1, -2)],
+        1: [k(0, 0), k(1, 0), k(-2, 0), k(1, -2), k(-2, 1)]
     },
-    L: {
-        S: [k(0, 0), k(1, 0), k(-2, 0), k(1, -2), k(-2, 1)],
-        F: [k(0, 0), k(-2, 0), k(1, 0), k(-2, -1), k(1, 2)]
+    3: {
+        0: [k(0, 0), k(1, 0), k(-2, 0), k(1, -2), k(-2, 1)],
+        2: [k(0, 0), k(-2, 0), k(1, 0), k(-2, -1), k(1, 2)]
     }
 };
 
@@ -61,7 +82,7 @@ let pieces = [
             [[0, 0, 0, 0], [0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0]],
             [[0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0]]
         ],
-        kicks: iWallkicks
+        wallkicks: iWallkicks
     },
     // J
     {
@@ -71,7 +92,7 @@ let pieces = [
             [[0, 0, 0], [1, 1, 1], [0, 0, 1]],
             [[0, 1, 0], [0, 1, 0], [1, 1, 0]]
         ],
-        kicks: wallkicks
+        wallkicks: wallkicks
     },
     // L
     {
@@ -81,14 +102,17 @@ let pieces = [
             [[0, 0, 0], [1, 1, 1], [1, 0, 0]],
             [[1, 1, 0], [0, 1, 0], [0, 1, 0]]
         ],
-        kicks: wallkicks
+        wallkicks: wallkicks
     },
     // O
     {
         rotations: [
+            [[1, 1], [1, 1]],
+            [[1, 1], [1, 1]],
+            [[1, 1], [1, 1]],
             [[1, 1], [1, 1]]
         ],
-        kicks: null
+        wallkicks: noWallKicks
     },
     // S
     {
@@ -98,7 +122,7 @@ let pieces = [
             [[0, 0, 0], [0, 1, 1], [1, 1, 0]],
             [[1, 0, 0], [1, 1, 0], [0, 1, 0]]
         ],
-        kicks: wallkicks
+        wallkicks: wallkicks
     },
     // T
     {
@@ -108,7 +132,7 @@ let pieces = [
             [[0, 0, 0], [1, 1, 1], [0, 1, 0]],
             [[0, 1, 0], [1, 1, 0], [0, 1, 0]]
         ],
-        kicks: wallkicks
+        wallkicks: wallkicks
     },
     // Z
     {
@@ -118,71 +142,127 @@ let pieces = [
             [[0, 0, 0], [1, 1, 0], [0, 1, 1]],
             [[0, 1, 0], [1, 1, 0], [1, 0, 0]]
         ],
-        kicks: wallkicks
+        wallkicks: wallkicks
     }
 ];
 
 function newNtetrisGameState() {
-    return {
+    let state = {
         board: newNtetrisBoard(),
+        gravity: 10,
         players: [
             {
+                gravityTicks: 0,
                 piece: null,
+                drop: false
             },
             {
+                gravityTicks: 0,
                 piece: null,
+                drop: false
             }
-        ]
+        ],
+        winner: null
+    };
+    for (let i = 0; i <= 1; i++) {
+        spawnPiece(state, i);
     }
+    return state;
 }
 
 function newNtetrisBoard() {
     let array = Array.from({ length: height }, () => Array(width));
     for (x = 0; x < width; x++) {
-        for (y = 0; y < height / 2; y++) {
-            array[y][x] = P1;
+        for (y = 0; y < height; y++) {
+            array[y][x] = y < height / 2 ? P1 : P2;
         }
-        for (y = height / 2; y < height; y++) {
-            array[y][x] = P2;
-        }
+    }
+
+    for (x = 0; x < 3; x++) {
+        let y = x < width / 2 ? height / 2 - 1 : height / 2; 
+        array[y][x] = x < width / 2 ? P2 : P1;
+    }
+
+    for (x = width - 3; x < width; x++) {
+        let y = x < width / 2 ? height / 2 - 1 : height / 2; 
+        array[y][x] = x < width / 2 ? P2 : P1;
     }
 
     return array;
 }
 
 function stepState(state) {
-    console.log('step game state');
-    for (let i = 0; i <= 1; i++) {
-        if (state.players[i].piece === null) {
-            spawnPiece(state, i);
+    let endGame = false;
+    for (i = 0; i <= 1; i++) {
+        state.players[i].gravityTicks -= state.players[i].drop ? 10 : 1;
+        if (state.players[i].gravityTicks <= 0) {
+            state.players[i].gravityTicks = state.gravity;
+            if (!tryMovePlacePiece(state, state.players[i].piece, 0, 1)) {
+                endGame |= lockPiece(state, i);
+            }
         }
     }
-    console.log(state.players);
+    return endGame;
 }
 
+function tryPlacePiece(state, piece, wallkicks) {
+    for (let {x: x, y: ny} of wallkicks) {
+        let y = -ny;
+        let tryPiece = { ...piece };
+        tryPiece.x += x;
+        tryPiece.y += y;
+
+        if (!pieceIntersects(state, tryPiece)) {
+            console.log('able to place piece ' + JSON.stringify(tryPiece));
+            state.players[piece.player].piece = tryPiece;
+            return true;
+        }
+    };
+    return false;
+}
+
+function tryMovePlacePiece(state, piece, x, y) {
+    let tryPiece = { ...piece };
+    tryPiece.x += x;
+    tryPiece.y += y;
+    return tryPlacePiece(state, tryPiece, noWallKicksFlat);
+}
+
+function tryRotatePlacePiece(state, piece, cw) {
+    let tryPiece = { ...piece };
+    let currentRotation = tryPiece.r;
+    let targetRotation = (currentRotation + (cw ? 1 : -1) + 4) % 4;
+    tryPiece.r = targetRotation;
+    let wallkicks = tryPiece.wallkicks[currentRotation][targetRotation];
+    console.log('available kicks: ' + JSON.stringify(wallkicks));
+    return tryPlacePiece(state, tryPiece, wallkicks);
+}
+
+
+
 function performKeyPress(state, player, key) {
-    let tryPiece = { ...state.players[player].piece };
+    let piece = state.players[player].piece
     switch (key) {
         case 'left':
-            tryPiece.x -= 1;
+            tryMovePlacePiece(state, piece, -1, 0);
             break;
         case 'right':
-            tryPiece.x += 1;
+            tryMovePlacePiece(state, piece, 1, 0);
             break;
-        case 'up':
+        case 'rotate-cw':
+            tryRotatePlacePiece(state, piece, true);
             break;
-        case 'space':
+        case 'rotate-ccw':
+            tryRotatePlacePiece(state, piece, false);
             break;
-        case 'down':
-            tryPiece.y += 1;
+        case 'drop-held':
+            state.players[player].drop = true;
             break;
-    }
-    if (pieceIntersects(state, tryPiece)) {
-        if (key === 'down') {
-            lockPiece(state, player);
-        }
-    } else {
-        state.players[player].piece = tryPiece;
+        case 'drop-released':
+            state.players[player].drop = false;
+            break;
+        default:
+            return;
     }
 }
 
@@ -216,7 +296,7 @@ function lockPiece(state, player) {
         }
     }
 
-    rowsToClear.forEach(r, i => {
+    rowsToClear.forEach((r, i) => {
         let row = r + i;
         for (let y = row; y > 0; y--) {
             for (let x = 0; x < width; x++) {
@@ -226,8 +306,42 @@ function lockPiece(state, player) {
         }
     });
 
-    state.players[player].piece = null;
-    spawnPiece(state, player);
+    let otherPlayer = piece.player === P1 ? P2 : P1;
+    forcePieceOnBG(state, state.players[otherPlayer].piece);
+
+    let endPlayer = checkGameEnd(state);
+    if (endPlayer !== -1) {
+        state.winner = endPlayer === P1 ? P2 : P1;
+        return true;
+    } else {
+        state.players[player].piece = null;
+        spawnPiece(state, player);
+        return false;
+    }
+}
+
+function checkGameEnd(state) {
+    for (y = 0; y < 4; y++) {
+        for (x = 0; x < width; x++) {
+            if (getAs(state.board, y, x, P1) === TERR) {
+                return P1;
+            } else if(getAs(state.board, y, x, P2) === TERR) {
+                return P2;
+            }
+        }
+    }
+    return -1;
+}
+
+function forcePieceOnBG(state, piece) {
+    let shape = piece.rotations[piece.r];
+    for (let y = 0; y < piece.h; y++) {
+        for (let x = 0; x < piece.w; x++) {
+            if (shape[y][x] === 1 && getAs(state.board, piece.y + y, piece.x + x, piece.player) === TERR) {
+                setAs(state.board, piece.y + y, piece.x + x, piece.player, BG);
+            }
+        }
+    }
 }
 
 function pieceIntersects(state, piece) {
@@ -245,10 +359,7 @@ function pieceIntersects(state, piece) {
 function spawnPiece(state, player) {
     let piece = createPiece(player);
     state.players[player].piece = piece;
-}
-
-function spinPiece(piece, cw) {
-
+    state.players[player].gravityTicks = state.gravity;
 }
 
 function createPiece(player) {
@@ -261,7 +372,8 @@ function createPiece(player) {
         w: w,
         player: player,
         r: 0,
-        rotations: shape.rotations
+        rotations: shape.rotations,
+        wallkicks: shape.wallkicks
     }
 }
 

@@ -41,7 +41,7 @@ class MainMenuScene extends Phaser.Scene {
         this.add.text(joinButton.x, joinButton.y, 'Join', this.font).setOrigin(0.5);
         joinButton.setInteractive();
         joinButton.on('pointerdown', function () {
-            if (self.roomCode.length === 4) {
+            if (self.roomCode.length === 2) {
                 self.scene.start('game-room-scene', {
                     'createRoom': 'false',
                     'roomCode': self.roomCode
