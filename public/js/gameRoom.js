@@ -85,23 +85,27 @@ class GameRoomScene extends Phaser.Scene {
         this.gameImageGroup.setVisible(false);
 
         function registerKey(key, memo) {
-            let keyReg = self.input.keyboard.addKey(key);
+            let keyReg = self.input.keyboard.addKey(key, false, false);
             keyReg.on('down', function (_event) {
                 self.socket.emit('key-press', { key: memo });
             });
         }
 
+        function registerKeyPressRelease(key, heldMemo, releaseMemo) {
+            let keyReg = self.input.keyboard.addKey(key, false, false);
+            keyReg.on('down', function (_event) {
+                self.socket.emit('key-press', { key: heldMemo });
+            });
+            keyReg.on('up', function (_event) {
+                self.socket.emit('key-press', { key: releaseMemo });
+            });
+        }
+
         registerKey(Phaser.Input.Keyboard.KeyCodes.UP, 'rotate-cw');
         registerKey(Phaser.Input.Keyboard.KeyCodes.DOWN, 'rotate-ccw');
-        registerKey(Phaser.Input.Keyboard.KeyCodes.LEFT, 'left');
-        registerKey(Phaser.Input.Keyboard.KeyCodes.RIGHT, 'right');
-        let dropReg = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-        dropReg.on('down', function (_event) {
-            self.socket.emit('key-press', { key: 'drop-held' });
-        });
-        dropReg.on('up', function (_event) {
-            self.socket.emit('key-press', { key: 'drop-released' });
-        });
+        registerKeyPressRelease(Phaser.Input.Keyboard.KeyCodes.LEFT, 'left-held', 'left-released');
+        registerKeyPressRelease(Phaser.Input.Keyboard.KeyCodes.RIGHT, 'right-held', 'right-released');
+        registerKeyPressRelease(Phaser.Input.Keyboard.KeyCodes.SPACE, 'drop-held', 'drop-released');
 
         let restartReg = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
         restartReg.on('down', function (_event) {

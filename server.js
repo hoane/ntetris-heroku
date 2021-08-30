@@ -81,20 +81,12 @@ io.on('connection', function (socket) {
 
     socket.on('key-press', function ({ key: key }) {
         let roomCode = players[socket.id].roomCode;
-        let updated = false;
 
         if (roomCode in rooms) {
             if (rooms[roomCode].phase === 'playing') {
-                updated = true;
                 let player = rooms[roomCode].players[0] === socket.id ? ntetris.P1 : ntetris.P2;
                 ntetris.performKeyPress(rooms[roomCode].gameState, player, key);
             }
-        }
-
-        if (updated) {
-            rooms[roomCode].players.forEach(id => {
-                io.to(id).emit('room-state-update', { roomState: rooms[roomCode] });
-            });
         }
     });
 

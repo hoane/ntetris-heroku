@@ -11,6 +11,7 @@ class MainMenuScene extends Phaser.Scene {
 
     init(data) {
         this.message = data.message || '';
+        this.roomCode = "";
     }
 
     preload() {

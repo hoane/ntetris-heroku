@@ -7,10 +7,8 @@ let P2 = 1;
 let BG = 2;
 let TERR = 3;
 
-let S = 0;
-let R = 1;
-let F = 2;
-let L = 3;
+let HoldDelay = 4;
+let MaxGravityTicks = 1000;
 
 function k(x, y) { return { x: x, y: y } }
 
@@ -147,21 +145,25 @@ let pieces = [
 ];
 
 function newNtetrisGameState() {
+    let playerState = {
+        gravityTicks: 0,
+        piece: null,
+        drop: false,
+        leftHeld: 0,
+        rightHeld: 0,
+    };
+
     let state = {
         board: newNtetrisBoard(),
-        gravity: 16,
+        gravity: 100,
         gravityIncreaseTime: 100,
         gravityIncreaseTicks: 0,
         players: [
             {
-                gravityTicks: 0,
-                piece: null,
-                drop: false
+                ...playerState
             },
             {
-                gravityTicks: 0,
-                piece: null,
-                drop: false
+                ...playerState
             }
         ],
         winner: null
@@ -194,19 +196,35 @@ function newNtetrisBoard() {
 }
 
 function stepState(state) {
-    if (state.gravity > 2) {
+    if (state.gravity < 500) {
         state.gravityIncreaseTicks--;
         if (state.gravityIncreaseTicks <= 0) {
-            state.gravity--;
+            state.gravity += 10;
             state.gravityIncreaseTicks = state.gravityIncreaseTime;
+        }
+    }
+
+    for (i = 0; i <= 1; i++) {
+        if (state.players[i].leftHeld > 0) {
+            if (state.players[i].leftHeld > 1) {
+                state.players[i].leftHeld--;
+            } else {
+                tryMovePlacePiece(state, state.players[i].piece, -1, 0);
+            }
+        } else if (state.players[i].rightHeld > 0) {
+            if (state.players[i].rightHeld > 1) {
+                state.players[i].rightHeld--;
+            } else {
+                tryMovePlacePiece(state, state.players[i].piece, 1, 0);
+            }
         }
     }
 
     let endGame = false;
     for (i = 0; i <= 1; i++) {
-        state.players[i].gravityTicks -= state.players[i].drop ? state.gravity : 1;
-        if (state.players[i].gravityTicks <= 0) {
-            state.players[i].gravityTicks = state.gravity;
+        state.players[i].gravityTicks -= state.gravity;
+        if (state.players[i].drop || state.players[i].gravityTicks <= 0) {
+            state.players[i].gravityTicks = MaxGravityTicks;
             if (!tryMovePlacePiece(state, state.players[i].piece, 0, 1)) {
                 endGame |= lockPiece(state, i);
             }
@@ -251,11 +269,19 @@ function tryRotatePlacePiece(state, piece, cw) {
 function performKeyPress(state, player, key) {
     let piece = state.players[player].piece
     switch (key) {
-        case 'left':
+        case 'left-held':
             tryMovePlacePiece(state, piece, -1, 0);
+            state.players[player].leftHeld = HoldDelay;
             break;
-        case 'right':
+        case 'left-released':
+            state.players[player].leftHeld = 0;
+            break;
+        case 'right-held':
             tryMovePlacePiece(state, piece, 1, 0);
+            state.players[player].rightHeld = HoldDelay;
+            break;
+        case 'right-released':
+            state.players[player].rightHeld = 0;
             break;
         case 'rotate-cw':
             tryRotatePlacePiece(state, piece, true);
