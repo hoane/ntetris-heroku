@@ -75,14 +75,14 @@ class GameRoomScene extends Phaser.Scene {
             }
         }
         this.gameImageGroup.add(
-            this.add.line(0, 0, 40, baseBoardY + 3.5 * tileSize, width - 40, baseBoardY + 3.5 * tileSize, '0xff0000')
+            this.add.line(0, 0, 0, baseBoardY + 3.5 * tileSize - 1, width, baseBoardY + 3.5 * tileSize - 1, '0xff0000')
                 .setOrigin(0, 0)
         )
         this.gameImageGroup.add(
-            this.add.line(0, 0, 40, baseBoardY + (gameHeight - 4.5) * tileSize, width - 40, baseBoardY + (gameHeight - 4.5) * tileSize, '0xff0000')
+            this.add.line(0, 0, 0, baseBoardY + (gameHeight - 4.5) * tileSize + 1, width, baseBoardY + (gameHeight - 4.5) * tileSize + 1, '0xff0000')
                 .setOrigin(0, 0)
         )
-        //this.gameImageGroup.setVisible(false);
+        this.gameImageGroup.setVisible(false);
 
         function registerKey(key, memo) {
             let keyReg = self.input.keyboard.addKey(key);
