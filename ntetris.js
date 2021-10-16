@@ -144,6 +144,9 @@ let pieces = [
     }
 ];
 
+/**
+ * Initialize a new game state.
+ */
 function newNtetrisGameState() {
     let playerState = {
         gravityTicks: 0,
@@ -174,27 +177,9 @@ function newNtetrisGameState() {
     return state;
 }
 
-function newNtetrisBoard() {
-    let array = Array.from({ length: height }, () => Array(width));
-    for (x = 0; x < width; x++) {
-        for (y = 0; y < height; y++) {
-            array[y][x] = y < height / 2 ? P1 : P2;
-        }
-    }
-
-    for (x = 0; x < 3; x++) {
-        let y = x < width / 2 ? height / 2 - 1 : height / 2; 
-        array[y][x] = x < width / 2 ? P2 : P1;
-    }
-
-    for (x = width - 3; x < width; x++) {
-        let y = x < width / 2 ? height / 2 - 1 : height / 2; 
-        array[y][x] = x < width / 2 ? P2 : P1;
-    }
-
-    return array;
-}
-
+/**
+ * Increment a game state by one tick.
+ */
 function stepState(state) {
     if (state.gravity < 500) {
         state.gravityIncreaseTicks--;
@@ -233,39 +218,9 @@ function stepState(state) {
     return endGame;
 }
 
-function tryPlacePiece(state, piece, wallkicks) {
-    for (let {x: x, y: ny} of wallkicks) {
-        let y = -ny;
-        let tryPiece = { ...piece };
-        tryPiece.x += x;
-        tryPiece.y += y;
-
-        if (!pieceIntersects(state, tryPiece)) {
-            state.players[piece.player].piece = tryPiece;
-            return true;
-        }
-    };
-    return false;
-}
-
-function tryMovePlacePiece(state, piece, x, y) {
-    let tryPiece = { ...piece };
-    tryPiece.x += x;
-    tryPiece.y += y;
-    return tryPlacePiece(state, tryPiece, noWallKicksFlat);
-}
-
-function tryRotatePlacePiece(state, piece, cw) {
-    let tryPiece = { ...piece };
-    let currentRotation = tryPiece.r;
-    let targetRotation = (currentRotation + (cw ? 1 : -1) + 4) % 4;
-    tryPiece.r = targetRotation;
-    let wallkicks = tryPiece.wallkicks[currentRotation][targetRotation];
-    return tryPlacePiece(state, tryPiece, wallkicks);
-}
-
-
-
+/**
+ * Update the game state according to a key press event.
+ */
 function performKeyPress(state, player, key) {
     let piece = state.players[player].piece
     switch (key) {
@@ -299,6 +254,61 @@ function performKeyPress(state, player, key) {
             return;
     }
 }
+
+function newNtetrisBoard() {
+    let array = Array.from({ length: height }, () => Array(width));
+    for (x = 0; x < width; x++) {
+        for (y = 0; y < height; y++) {
+            array[y][x] = y < height / 2 ? P1 : P2;
+        }
+    }
+
+    for (x = 0; x < 3; x++) {
+        let y = x < width / 2 ? height / 2 - 1 : height / 2; 
+        array[y][x] = x < width / 2 ? P2 : P1;
+    }
+
+    for (x = width - 3; x < width; x++) {
+        let y = x < width / 2 ? height / 2 - 1 : height / 2; 
+        array[y][x] = x < width / 2 ? P2 : P1;
+    }
+
+    return array;
+}
+
+
+function tryPlacePiece(state, piece, wallkicks) {
+    for (let {x: x, y: ny} of wallkicks) {
+        let y = -ny;
+        let tryPiece = { ...piece };
+        tryPiece.x += x;
+        tryPiece.y += y;
+
+        if (!pieceIntersects(state, tryPiece)) {
+            state.players[piece.player].piece = tryPiece;
+            return true;
+        }
+    };
+    return false;
+}
+
+function tryMovePlacePiece(state, piece, x, y) {
+    let tryPiece = { ...piece };
+    tryPiece.x += x;
+    tryPiece.y += y;
+    return tryPlacePiece(state, tryPiece, noWallKicksFlat);
+}
+
+function tryRotatePlacePiece(state, piece, cw) {
+    let tryPiece = { ...piece };
+    let currentRotation = tryPiece.r;
+    let targetRotation = (currentRotation + (cw ? 1 : -1) + 4) % 4;
+    tryPiece.r = targetRotation;
+    let wallkicks = tryPiece.wallkicks[currentRotation][targetRotation];
+    return tryPlacePiece(state, tryPiece, wallkicks);
+}
+
+
 
 function lockPiece(state, player) {
     let piece = state.players[player].piece;
