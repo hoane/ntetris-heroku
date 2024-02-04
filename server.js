@@ -27,75 +27,84 @@ function serverTick() {
     }
 }
 
-function createRoom() {
-    let roomCode = randomRoomCode();
-    rooms[roomCode] = {
-        roomCode: roomCode,
-        players: [socket.id],
-        phase: 'waiting'
-    };
-    players[socket.id].roomCode = roomCode;
-    console.log(players[socket.id]);
-    console.log('created room ' + roomCode);
-    socket.emit('room-state-update', { roomState: rooms[roomCode] });
-}
+function createSocketHandlers(socket) {
+    let createRoom = () => {
+        let roomCode = randomRoomCode();
+        rooms[roomCode] = {
+            roomCode: roomCode,
+            players: [socket.id],
+            phase: 'waiting'
+        };
+        players[socket.id].roomCode = roomCode;
+        console.log(players[socket.id]);
+        console.log('created room ' + roomCode);
+        socket.emit('room-state-update', { roomState: rooms[roomCode] });
+    }
 
-function joinRoom({ roomCode: roomCode }) {
-    console.log('user requested to join room ' + roomCode);
-    let success = false;
-    let message = '';
-    if (roomCode in rooms) {
-        if (rooms[roomCode].phase === 'waiting') {
-            if (rooms[roomCode].players.length === 1) {
-                rooms[roomCode].players.push(socket.id);
-                rooms[roomCode].phase = 'playing';
-                rooms[roomCode].gameState = ntetris.newNtetrisGameState();
-                players[socket.id].roomCode = roomCode;
-                success = true;
+    let joinRoom = ({ roomCode: roomCode }) => {
+        console.log('user requested to join room ' + roomCode);
+        let success = false;
+        let message = '';
+        if (roomCode in rooms) {
+            if (rooms[roomCode].phase === 'waiting') {
+                if (rooms[roomCode].players.length === 1) {
+                    rooms[roomCode].players.push(socket.id);
+                    rooms[roomCode].phase = 'playing';
+                    rooms[roomCode].gameState = ntetris.newNtetrisGameState();
+                    players[socket.id].roomCode = roomCode;
+                    success = true;
+                } else {
+                    message = 'Wrong number of players in room';
+                }
             } else {
-                message = 'Wrong number of players in room';
+                message = 'Room is not waiting for players';
             }
         } else {
-            message = 'Room is not waiting for players';
+            message = 'Room does not exist';
         }
-    } else {
-        message = 'Room does not exist';
-    }
-    
-    if (success) {
-        rooms[roomCode].players.forEach(id => {
-            io.to(id).emit('room-state-update', { roomState: rooms[roomCode] });
-        });
-    } else {
-        socket.emit('room-join-fail', { message: message });
-    }
-}
-
-function handleKeyPress({ key: key }) {
-    let roomCode = players[socket.id].roomCode;
-
-    if (roomCode in rooms) {
-        if (rooms[roomCode].phase === 'playing') {
-            let player = rooms[roomCode].players[0] === socket.id ? ntetris.P1 : ntetris.P2;
-            ntetris.performKeyPress(rooms[roomCode].gameState, player, key);
-        }
-    }
-}
-
-function handleDisconnect() {
-    console.log('user disconnected');
-    if (socket.id in players) {
-        let roomCode = players[socket.id].roomCode
-        if (roomCode && roomCode in rooms) {
-            console.log('deleting room ' + roomCode);
+        
+        if (success) {
             rooms[roomCode].players.forEach(id => {
-                if (id !== socket.id) {
-                    io.to(id).emit("disconnect-player", id);
-                }
+                io.to(id).emit('room-state-update', { roomState: rooms[roomCode] });
             });
-            delete rooms[roomCode];
+        } else {
+            socket.emit('room-join-fail', { message: message });
         }
-        delete players[socket.id];
+    }
+
+    let handleKeyPress = ({ key: key }) => {
+        let roomCode = players[socket.id].roomCode;
+
+        if (roomCode in rooms) {
+            if (rooms[roomCode].phase === 'playing') {
+                let player = rooms[roomCode].players[0] === socket.id ? ntetris.P1 : ntetris.P2;
+                ntetris.performKeyPress(rooms[roomCode].gameState, player, key);
+            }
+        }
+    }
+
+    let handleDisconnect = () => {
+        console.log('user disconnected');
+        if (socket.id in players) {
+            let roomCode = players[socket.id].roomCode
+            if (roomCode && roomCode in rooms) {
+                console.log('deleting room ' + roomCode);
+                rooms[roomCode].players.forEach(id => {
+                    if (id !== socket.id) {
+                        io.to(id).emit("disconnect-player", id);
+                    }
+                });
+                delete rooms[roomCode];
+            }
+            delete players[socket.id];
+        }
+    }
+
+    return {
+        createRoom: createRoom,
+        joinRoom: joinRoom,
+        handleKeyPress: handleKeyPress,
+        handleDisconnect: handleDisconnect,
     }
 }
 
@@ -107,10 +116,12 @@ io.on('connection', function (socket) {
 
     socket.emit('accepted', { id: socket.id });
 
-    socket.on('create-room', createRoom);
-    socket.on('join-room', joinRoom);
-    socket.on('key-press', handleKeyPress);
-    socket.on('disconnect', handleDisconnect);
+    let handlers = createSocketHandlers(socket);
+
+    socket.on('create-room', handlers.createRoom);
+    socket.on('join-room', handlers.joinRoom);
+    socket.on('key-press', handlers.handleKeyPress);
+    socket.on('disconnect', handlers.handleDisconnect);
 });
 
 server.listen(process.env.PORT || 8082, function () {
